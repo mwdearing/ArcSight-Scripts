@@ -1,6 +1,7 @@
 #!/bin/bash
 # Gather container number from user
-read -p "Enter Container Number(0-9): " num
+read -n 1 -p "Enter Container Number(0-9): " num
+echo
 base="connector_"
 connector="$base$num"
 
@@ -24,7 +25,7 @@ if [ -z "$pid1" ]; then
         exit 1 || return 1
     fi
 else
-    /opt/local/monit/bin/monit stop $connector ; kill -9 $pid1 $pid2      # Forcing the service to die as service takes too long to stop gracefully, events drop in hand off to peer.
+    /opt/local/monit/bin/monit stop $connector ; kill -9 $pid1 $pid2 && sleep 2     # Forcing the service to die as service takes too long to stop gracefully, events drop in hand off to peer.
     echo ""$connector" Service Stopped"
     read -n 1 -p "Restart "$connector"?[y/n]: " -n 1 -r answer            # Repeated if statement from above to miminck resarting service function
     echo
