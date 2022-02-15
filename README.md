@@ -6,6 +6,7 @@ Useful scripts for dealing with Micro Focus' ArcSight products.
 
     ```bash
     $ ./container_restart_menu.sh 
+
     1- Test_Message
     2- Temporary Connector
     3- UDP 101 (515 LB)
@@ -27,10 +28,17 @@ Useful scripts for dealing with Micro Focus' ArcSight products.
     $ ./node-reboot-remote.sh
     ```
     
+ * node-restart-local.sh -> What I was using before coming up with the remote version of this script. Must be ran on each node indidually and includes no checks.
+
+    ```bash
+    $ ./node-restart-local.sh
+    ```
+    
 
 * node-cmd-sender.sh -> Used to send the same linux command to each node in the cluster.
     ```bash
     $ ./node-cmd-sender.sh ls
+
     node1:
     file1
     file2
