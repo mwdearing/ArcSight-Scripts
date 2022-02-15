@@ -1,5 +1,5 @@
 # ArcSight Scripts
-Useful scripts for dealing with ArcSight products.
+Useful scripts for dealing with Micro Focus' ArcSight products.
 ## SmartConnectors
 * sclb_stop_start.sh -> Used to quicky stop and start the ArcSight Loadbalancing SmartConnector.
 * appliance_sc_stop_start.sh -> Used to quickly stop and start a ArcSight SmartConnector Container on a ArcMC Appliance.
