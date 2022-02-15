@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Defining the first XML found in each folder as an item in an array.
 # The XML is where the user defined connector name is stored that matches the agent name in any CEF event.
+# Script heavily relies on the appliance naming the serivces with the format of "connector_#"
 base="connector_"
 
 # This could probably be cleaned up but due to how it was originally scripted, the array was just hard defined.
