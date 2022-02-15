@@ -1,15 +1,4 @@
 #!/usr/bin/env bash
-#-----------------------------------------------
-#
-#   MF CDF Node Reboot Script
-#
-#   Created on: 12 FEB 2022
-#   Created By: Michael Dearing
-#
-#   Version Notes:
-#   2.0 : 12/02/2022 - Remotely reboot worker and other masternodes from plarcma-1-0001.thrivent.com
-#
-#-----------------------------------------------
 # This script is used to restart a node within a MicroFocus ADP CDF ver. 2021 (Calls scripts that only exist within this k8s install)
 # The normal k8s process of restarting a node is too aggressive for the kafka pieces within TransformationHub.
 # The kube-stop and kube-restart scripts included within this k8s install are also too aggressive when pod eviction. 
