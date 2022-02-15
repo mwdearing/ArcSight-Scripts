@@ -1,15 +1,4 @@
 #!/usr/bin/env bash
-#-----------------------------------------------------
-#
-#   ArcSight Appliance SmartConnector Restart Script
-#
-#   Created on: 09 FEB 2022
-#   Created By: Michael Dearing
-#
-#   Version Notes:
-#   2.0 : 09/02/2022 - Container Selection Menu
-#
-#-----------------------------------------------------
 # Defining the first XML found in each folder as an item in an array.
 # The XML is where the user defined connector name is stored that matches the agent name in any CEF event.
 base="connector_"
