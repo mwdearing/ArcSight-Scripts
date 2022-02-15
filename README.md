@@ -21,12 +21,13 @@ Useful scripts for dealing with ArcSight products.
 
 ## ADP Cluster
 * node-restart-remote.sh -> Script used with ArcSight ADP Cluster ver. 2021
+    * drain.sh -> mating script to node-restart-remote.sh and goes locally on each node in /root/
 
     ```bash
     $ ./node-reboot-remote.sh
     ```
     
-* drain.sh -> mating script to node-restart-remote.sh and goes locally on each node in /root/
+
 * node-cmd-sender.sh -> Used to send the same linux command to each node in the cluster.
     ```bash
     $ ./node-cmd-sender.sh ls
