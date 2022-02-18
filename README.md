@@ -7,14 +7,14 @@ Useful scripts for dealing with Micro Focus' ArcSight products.
     ```bash
     $ ./container_restart_menu.sh 
 
-    1- Test_Message
-    2- Temporary Connector
-    3- UDP 101 (515 LB)
-    4- Temporary Connector
-    5- Test_Categorization
-    6- SF_KAFKA_TEST
-    7- Temporary Connector
-    8- UDP99
+    1- Container_1
+    2- Container_2
+    3- Container_3
+    4- Container_4
+    5- Container_5
+    6- Container_6
+    7- Container_7
+    8- Container_8
     9- Exit
     Enter the number: 
     ```
