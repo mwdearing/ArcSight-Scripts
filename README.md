@@ -51,3 +51,5 @@ Useful scripts for dealing with Micro Focus' ArcSight products.
     file3
     CMD:'ls' completed successfully on node2
     ```
+## Other
+* cef_syslog_sender.py - Basic script to send test events to a syslogNG connector.
