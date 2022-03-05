@@ -20,7 +20,7 @@ Useful scripts for dealing with Micro Focus' ArcSight products.
     ```
 
 ## ArcMC
-* update_marketplace_cert.sh
+* update_marketplace_cert.sh -> Grabs latest marketplace cert for parser AUP downloading.
 
 ```bash
 $./update_marketplace_cert.sh
