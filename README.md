@@ -19,6 +19,12 @@ Useful scripts for dealing with Micro Focus' ArcSight products.
     Enter the number: 
     ```
 
+## ArcMC
+* update_marketplace_cert.sh
+
+```bash
+$./update_marketplace_cert.sh
+```
 
 ## ADP Cluster
 * node-restart-remote.sh -> Used with ArcSight ADP Cluster ver. 2021
