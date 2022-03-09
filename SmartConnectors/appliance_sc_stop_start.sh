@@ -3,13 +3,15 @@
 #
 #   ArcSight Appliance SmartConnector Restart Script
 #
-#   Created on: 09 FEB 2022
+#   Created on: 01 MAR 2022
 #   Created By: Michael Dearing
 #
 #   Version Notes:
-#   2.1 : 05/03/2022 - Improved error handling and code clean up
+#   2.1 : 05/03/2022 - Improved error handling and code clean up/actions moved to functions.
 #
 #-----------------------------------------------------
+# Defining the first XML found in each folder as an item in an array.
+# The XML is where the user defined connector name is stored that matches the agent name in any CEF event.
 # Defining the first XML found in each folder as an item in an array.
 # The XML is where the user defined connector name is stored that matches the agent name in any CEF event.
 base="connector_"
@@ -70,6 +72,7 @@ fi
 #-----------------------------------------------------
 #                   Functions
 #-----------------------------------------------------
+
 cleanstart () {
         read -p "Which log to tail? (0)-None | (1)-agent.out.wrapper.log | (2) - agent.log: " -n 1 -r log
         tl=$(ls -alh /opt/arcsight/connectors/$connector/current/logs/T* 2>/dev/null | wc -l)
@@ -89,6 +92,17 @@ cleanstart () {
         clear
 }
 # Send SIGTERM to stop a container and then goes through and cleans up any files that may prevent the service from starting up again.
+logset () {
+    if [[ $log == 1 ]]; then
+    log="$aout"
+    tail -F $log;
+    elif [[ $log == 0 ]]; then
+    exit 0
+    else
+    log="$agt"
+    tail -F $log;
+    fi
+}
 constop () {
     pid1="$(ps ax | grep $connector | grep -v grep | awk '{print $1}' | sed 'N;s/\n/,/' | cut -d "," -f 1)"
     pid2="$(ps ax | grep $connector | grep -v grep | awk '{print $1}' | sed 'N;s/\n/,/' | cut -d "," -f 2)"
@@ -106,15 +120,7 @@ constop () {
     echo
     if [[ $answer =~ ^[Yy]$ ]]; then
         cleanstart
-        if [[ $log == 1 ]]; then
-        log="$aout"
-        tail -F $log;
-        elif [[ $log == 0 ]]; then
-        exit 0
-        else
-        log="$agt"
-        tail -F $log;
-        fi
+        logset
     else
         exit 1
     fi
@@ -125,16 +131,7 @@ else
     echo
     if [[ $answer =~ ^[Yy]$ ]]; then
         cleanstart
-        if [[ $log == 1 ]]; then
-        log="$aout"
-        tail -F $log;
-        elif [[ $log == 0 ]]; then
-        exit 0
-        else
-        log="$agt"
-        tail -F $log;
-        fi
-        
+        logset 
     else
         exit 1
     fi
