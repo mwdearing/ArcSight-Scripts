@@ -7,7 +7,7 @@
 #   Created By: Michael Dearing
 #
 #   Version Notes:
-#   2.1 : 05/03/2022 - Improved error handling and code clean up/actions moved to functions.
+#   2.2 : 13/05/2022 - Code cleanup and spelling corrections.
 #
 #-----------------------------------------------------
 # Defining the first XML found in each folder as an item in an array.
@@ -30,42 +30,42 @@ xml[7]="$(ls /opt/arcsight/connectors/connector_8/current/user/agent/3*.xml 2>/d
 # Determining if each item in the array is present before running subshell command or else cat will through errors in stdout.
 # Not all connectors hosts will have a full set of 8 containers, so limiting errors. 
 if [[ -e ${xml[0]} ]]; then
-    conname1="$(cat <"${xml[0]}" 2>/dev/null | grep -P -m 1 "AgentName" | cut -d '"' -f 2)"
+    conname1="$(cat <"${xml[0]}" 2>/dev/null | grep -P -m 1 "AgentName" | egrep -o 'AgentName=.*$' | cut -d '"' -f 2)"
 else
     conname1="Empty Container"
 fi
 if [[ -e ${xml[1]} ]]; then
-    conname2="$(cat <"${xml[1]}" 2>/dev/null | grep -P -m 1 "AgentName" | cut -d '"' -f 2)"
+    conname2="$(cat <"${xml[1]}" 2>/dev/null | grep -P -m 1 "AgentName" | egrep -o 'AgentName=.*$' | cut -d '"' -f 2)"
 else
     conname2="Empty Container"
 fi
 if [[ -e ${xml[2]} ]]; then
-    conname3="$(cat <"${xml[2]}" 2>/dev/null | grep -P -m 1 "AgentName" | cut -d '"' -f 2)"
+    conname3="$(cat <"${xml[2]}" 2>/dev/null | grep -P -m 1 "AgentName" | egrep -o 'AgentName=.*$' | cut -d '"' -f 2)"
 else
     conname3="Empty Container"
 fi
 if [[ -e ${xml[3]} ]]; then
-    conname4="$(cat <"${xml[3]}" 2>/dev/null | grep -P -m 1 "AgentName" | cut -d '"' -f 2)"
+    conname4="$(cat <"${xml[3]}" 2>/dev/null | grep -P -m 1 "AgentName" | egrep -o 'AgentName=.*$' | cut -d '"' -f 2)"
 else
     conname4="Empty Container"
 fi
 if [[ -e ${xml[4]} ]]; then
-    conname5="$(cat <"${xml[4]}" 2>/dev/null | grep -P -m 1 "AgentName" | cut -d '"' -f 2)"
+    conname5="$(cat <"${xml[4]}" 2>/dev/null | grep -P -m 1 "AgentName" | egrep -o 'AgentName=.*$' | cut -d '"' -f 2)"
 else
     conname5="Empty Container"
 fi
 if [[ -e ${xml[5]} ]]; then
-    conname6="$(cat <"${xml[5]}" 2>/dev/null | grep -P -m 1 "AgentName" | cut -d '"' -f 2)"
+    conname6="$(cat <"${xml[5]}" 2>/dev/null | grep -P -m 1 "AgentName" | egrep -o 'AgentName=.*$' | cut -d '"' -f 2)"
 else
     conname6="Empty Container"
 fi
 if [[ -e ${xml[6]} ]]; then
-    conname7="$(cat <"${xml[6]}" 2>/dev/null | grep -P -m 1 "AgentName" | cut -d '"' -f 2)"
+    conname7="$(cat <"${xml[6]}" 2>/dev/null | grep -P -m 1 "AgentName" | egrep -o 'AgentName=.*$' | cut -d '"' -f 2)"
 else
     conname7="Empty Container"
 fi
 if [[ -e ${xml[7]} ]]; then
-    conname8="$(cat <"${xml[7]}" 2>/dev/null | grep -P -m 1 "AgentName" | cut -d '"' -f 2)"
+    conname8="$(cat <"${xml[7]}" 2>/dev/null | grep -P -m 1 "AgentName" | egrep -o 'AgentName=.*$' | cut -d '"' -f 2)"
 else
     conname8="Empty Container"
 fi
@@ -76,14 +76,20 @@ fi
 cleanstart () {
         read -p "Which log to tail? (0)-None | (1)-agent.out.wrapper.log | (2) - agent.log: " -n 1 -r log
         tl=$(ls -alh /opt/arcsight/connectors/$connector/current/logs/T* 2>/dev/null | wc -l)
+        hp=$(ls -alh /opt/arcsight/connectors/$connector/current/logs/H* 2>/dev/null | wc -l)
+        bk=$(ls -alh /opt/arcsight/connectors/$connector/current/user/agent/*.bak 2>/dev/null | wc -l)
         sc=$(find /opt/arcsight/connectors/$connector/current/user/agent/agentdata/ -mtime +2 2>/dev/null | wc -l)
         rm -f /opt/arcsight/connectors/$connector/current/run/a*;
         rm -f /opt/arcsight/connectors/$connector/current/logs/T* 2>/dev/null
+        rm -f /opt/arcsight/connectors/$connector/current/logs/H* 2>/dev/null
+        rm -f /opt/arcsight/connectors/$connector/current/user/agent/*.bak 2>/dev/null
         find /opt/arcsight/connectors/$connector/current/user/agent/agentdata/ -mtime +2 -exec rm -f '{}' \;
         echo ""
         echo "Container Clean up summary:"
-        echo "Total # ThreadDump files removed: $tl"
-        echo "Total # Stale Cache removed: $sc"
+        echo "Total # of ThreadDump files removed: $tl"
+        echo "Total # of HeapDump files removed: $hp"
+        echo "Total # of Stale Cache files removed: $sc"
+        echo "Total # of .bak files removed: $bk"
         sleep 3
         echo "Starting $connector..."
         sleep 2
@@ -125,7 +131,7 @@ constop () {
         exit 1
     fi
 else
-    /opt/local/monit/bin/monit stop $connector ; kill -15 $pid1 $pid2 && sleep 2  # Originally was using -9 but now using SIGTERM to stop the service to die as service takes too long to stop gracefully, events drop in hand off to peer.   
+    /opt/local/monit/bin/monit stop $connector ; kill -15 $pid1 $pid2 2>/dev/null && sleep 5  # Originally was using -9 but now using SIGTERM to stop the service to die as service takes too long to stop gracefully, events drop in hand off to peer.   
     echo ""$connector" Service Stopped"
     read -n 1 -p "Restart "$connector"?[y/n]: " -n 1 -r answer            # Repeated if statement from above to miminck resarting service function
     echo
