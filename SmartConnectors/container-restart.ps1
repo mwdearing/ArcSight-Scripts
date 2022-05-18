@@ -6,85 +6,111 @@
 #   Created By: Michael Dearing
 #
 #   Version Notes:
-#   2.0 : 09/03/2022 - New way of killing processes and the wrappers subprocesses.
+#   3.0 : 09/05/2022 - Display count of each file type deleted. Added funtion and cleaned up a ton of code. 
 #
 #-----------------------------------------------
-# User editable area: 
-$ageout = "-1"
-$currentDate = Get-Date
-$oldfile = $currentDate.AddDays($ageout)
+# User editable area:
+$winc = "arc_Connector_2"
+$wincb = "F:\arcsight\connectors\connector_2\current"
+$sysmon = "arc_Container_5"
+$sysmonb = "F:\arcsight\connectors\Container 5\current"
+$powershell = "arc_connector_3"
+$psb = "F:\arcsight\connectors\connector_3\current"
+
+# DO NOT EDIT 
 $service = ""
 $base = ""
 $logpath = "\logs"
 $adpath = "\user\agent\agentdata"
 $runpath = "\run"
 $tail = "\logs\agent.out.wrapper.log"
+ 
+
+#################################
+#           Functions           #
+#################################
 # Force stopping the service before checking and allowing user to kill individual processes related to the service. 
-function fkproc {
+Function Invoke-ProcKill {
     Param([int]$ppid)
-    Write-Output "Stopping $ppid"
-    Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $ppid } | ForEach-Object { fkproc $_.ProcessId }
+    Write-Host "Stopping $ppid"
+    Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $ppid } | ForEach-Object { Invoke-ProcKill $_.ProcessId }
     Stop-Process -Id $ppid -Force
 }
-$selection = Read-Host -Prompt 'Enter (1)-WINC   (2)-Sysmon: '
-Write-Host ""
-if ($selection -eq '1'){
-    $service = "arc_Container_1"
-    $base = 'F:\ArcSight Containers\Container 1\current'
-} else {
-    $service = "arc_Container_2"
-    $base = 'F:\ArcSight Containers\Container 2\current'
-}
-$mypid = 0
-$myProcessToKill = (Get-CimInstance -Class Win32_Service -Filter "Name LIKE '$service'" | Select-Object -ExpandProperty ProcessId)
-
-if ($myProcessToKill -eq "") {
-    Write-Output "$service is not running."
-} else {
-    $mypid = (Get-CimInstance -Class Win32_Service -Filter "Name LIKE '$service'" | Select-Object -ExpandProperty ProcessId)
-    Write-Output "The $service PID is: $mypid"
-    if ($mypid -gt 1) {
-        Write-Output "Killing $service and all of it's child processes..."
-        fkproc $mypid
+# Stopping process in separate window then waiting 10 seconds before force killing process.
+Function Stop-ArcSvc {
+    Write-Host "Stopping $service. Please wait..."
+    Start-Process PowerShell.exe -ArgumentList "-noexit", "-command Stop-Service $service; exit" -WindowStyle Minimized
+    Start-Sleep -Seconds 15
+    $mypid = 0
+    $myProcessToKill = (Get-CimInstance -Class Win32_Service -Filter "Name LIKE '$service'" | Select-Object -ExpandProperty ProcessId)
+    if ($myProcessToKill -eq "") {
+        Write-Host "$service stopped cleanly."
+    } else {
+        $mypid = (Get-CimInstance -Class Win32_Service -Filter "Name LIKE '$service'" | Select-Object -ExpandProperty ProcessId)
+        Write-Host "The $service PID is: $mypid"
+        if ($mypid -gt 1) {
+            Write-Host "Killing $service and all of it's child processes..."
+            Invoke-ProcKill $mypid
+        }
     }
+    Write-Host "$service is now stopped.."
 }
-Write-Output ""
-Write-Output "$service is now stopped.."
-Write-Output ""
 
+#################################
+#         User Selection        #
+#################################
+$selection = Read-Host -Prompt 'Enter (1)-WINC   (2)-Sysmon   (3)-PowerShell'
+# Setting variables based on selection. 
+if ($selection -eq '1')
+{   $service = $winc
+    $base = $wincb} 
+elseif ($selection -eq '2')
+{    $service = $sysmon
+    $base = $sysmonb}
+elseif ($selection -eq '3')
+{    $service = $powershell
+    $base = $psb}
+else 
+{   Write-Output "Incorrect Selection. Exiting..."
+    Start-Sleep -Seconds 2
+    Exit}
+# Verifying user wants to stop the service. 
+$answer = Read-Host -Prompt "You are about to stop $service, do you wish to continue? [y/n]"
+if ($answer -imatch 'y')
+{    Stop-ArcSvc}
+else 
+{   Write-Host "Script will now exit..."
+    Exit}
+
+#################################
+#         Script Execution      #
+#################################
 # Removes stale cache files out of the \current\user\agent\agentdata\
-Write-Output "Cleaning stale cache files."
-Write-Output ""
-Get-ChildItem -Path $base$adpath | Where-Object { $_.LastWriteTime -lt $oldfile } | Remove-Item
-Start-Sleep -Seconds 2
-
+$oldcache = Get-ChildItem -Path $base$adpath | Where-Object { $_.LastWriteTime -lt (get-date).AddDays(-1) }
+$oldcachecount = $oldcache | Measure-Object | Select-Object -ExpandProperty Count
+Write-Host "Removing $oldcachecount stale cache files."
+$oldcache | Remove-Item
+$sizedflt = Get-ChildItem -Path $base$adpath | Where-Object { $_.Name.EndsWith(".size.dflt") } 
+$sizedflt | Remove-Item
+Start-Sleep -Seconds 1
 # Removes HeapDumps from log dir
-Write-Output "Removing HeapDump Files"
-Write-Output ""
-Get-ChildItem -Path $base$logpath | Where-Object { $_.Name.StartsWith("HeapDump") } | Remove-Item
-Start-Sleep -Seconds 2
-
+$heapdump = Get-ChildItem -Path $base$logpath | Where-Object { $_.Name.StartsWith("HeapDump") }
+$heapdumpcount = $heapdump |  Measure-Object | Select-Object -ExpandProperty Count
+Write-Host "Removing $heapdumpcount HeapDump files."
+$heapdump | Remove-Item
+Start-Sleep -Seconds 1
 # Removes Threaddump files from log dir
-Write-Output "Removing Threaddump files"
-Write-Output ""
-Get-ChildItem -Path $base$logpath | Where-Object { $_.Name.StartsWith("Thread") } | Remove-Item
-Start-Sleep -Seconds 2
-
+$threaddump = Get-ChildItem -Path $base$logpath | Where-Object { $_.Name.StartsWith("Thread") } 
+$threaddumpcount = $threaddump | Measure-Object | Select-Object -ExpandProperty Count
+Write-Host "Removing $threaddumpcount Threaddump files"
+$threaddump | Remove-Item
 # Removes any lock files that may be present from killing the service.
-Write-Output "Removing agent.lock files."
-Write-Output ""
+Write-Host "Removing agent.lock files."
 Get-ChildItem -Path $base$runpath | Where-Object { $_.Name.EndsWith(".lock") } | Remove-Item
-Start-Sleep -Seconds 2
-
-
-Write-Output "Starting Connector Service."
-Write-Output ""
-# Lanching the services MMC so connector can be started. 
-Start-Service -Name $service
-
+Write-Host "Starting $service. Please wait..."
+# Starting service in new window to keep main output clean.
+Start-Process PowerShell.exe -ArgumentList "-noexit", "-command Start-Service $service; exit" -WindowStyle Minimized
 # Tailing agent.out.wrapper.log file to make sure connector comes up fully
-Write-Output ""
-Write-Output "Tailing agent.out.wrapper.log"
-Write-Output ""
-start-sleep -Seconds 2
-Get-Content -Path $base$tail -Wait -Tail 20  
+Write-Host "Tailing agent.out.wrapper.log"
+start-sleep -Seconds 1
+Get-Content -Path $base$tail -Wait -Tail 1
