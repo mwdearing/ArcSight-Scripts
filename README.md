@@ -3,6 +3,7 @@ Useful scripts for dealing with Micro Focus' ArcSight products.
 ## SmartConnectors
 * container_restart.ps1 -> Used with connector frameworks installed on windows host. 
 * sclb_stop_start.sh -> Used to quicky stop and start the ArcSight Loadbalancing SmartConnector.
+* thub_cert_store_builder.sh -> Used to quickly stand up a single cert store for connector destinations to use when sending to Transformation Hub over SSL
 * nonappliance_sc_stop_start.sh -> Refer to the script below, exact same script without the interaction with the monit service. 
 * appliance_sc_stop_start.sh -> Used to quickly stop and start a ArcSight SmartConnector Container on a ArcMC Appliance.
 
